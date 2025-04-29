@@ -1,0 +1,100 @@
+<?php
+session_start();
+require 'db.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// عملية الحذف
+if (isset($_GET['delete'])) {
+    $id = $_GET['delete'];
+    $stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
+    $stmt->execute(['id' => $id]);
+    header("Location: show_data.php");
+    exit;
+}
+
+// استرجاع البيانات
+$stmt = $pdo->query("SELECT * FROM products");
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض المنتجات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 15px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        img {
+            width: 100%; /* عرض الصورة */
+            height: auto; /* الحفاظ على النسبة */
+            border-radius: 5px;
+        }
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            margin: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .button:hover {
+            background-color: #45a049; /* لون عند التمرير */
+        }
+    </style>
+</head>
+<body>
+    <h1>عرض المنتجات</h1>
+    <div class="container">
+        <?php foreach ($products as $product): ?>
+            <div class="card">
+                <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                <h2><?= htmlspecialchars($product['name']) ?></h2>
+                <p><?= htmlspecialchars($product['description']) ?></p>
+                <p><strong><?= htmlspecialchars($product['price']) ?> د.إ.</strong></p>
+                <a class="button" href="edit_data.php?id=<?= $product['id'] ?>">تعديل</a>
+                <a class="button" href="?delete=<?= $product['id'] ?>" onclick="return confirm('هل أنت متأكد من الحذف؟');">حذف</a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <div style="text-align: center;">
+        <a class="button" href="add_data.php">إضافة منتج جديد</a>
+        <a class="button" href="logout.php">تسجيل الخروج</a>
+    </div>
+</body>
+</html>
+
